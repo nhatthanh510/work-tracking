@@ -1,0 +1,264 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+/* Import the day-picker base here so our .rdp-root overrides below win the cascade. */
+@import 'react-day-picker/style.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Timesheet Chronograph ─────────────────────────────────────────────────
+   Cool paper + graphite with a spruce-teal instrument accent.
+   Type: Space Grotesk (display) · IBM Plex Sans (UI) · IBM Plex Mono (data). */
+
+:root {
+  --radius: 0.5rem;
+
+  --background: #f1f2ef;
+  --foreground: #14181e;
+  --card: #fbfcfa;
+  --card-foreground: #14181e;
+  --popover: #ffffff;
+  --popover-foreground: #14181e;
+
+  --primary: #0e6e62;
+  --primary-foreground: #f3f8f6;
+  --secondary: #e7e9e4;
+  --secondary-foreground: #26303a;
+  --muted: #e7e9e4;
+  --muted-foreground: #5c6470;
+  --accent: #e2ece9;
+  --accent-foreground: #0e4b43;
+
+  --destructive: #b1402b;
+  --border: #dcdfd9;
+  --input: #d3d7d0;
+  --ring: #0e6e62;
+
+  --success: #1f7a4d;
+  --success-foreground: #f3f8f6;
+  --warning: #9a5b09;
+  --track: #dfe2dc;
+
+  --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+}
+
+.dark {
+  --background: #0f1319;
+  --foreground: #e7e9e6;
+  --card: #161b22;
+  --card-foreground: #e7e9e6;
+  --popover: #161b22;
+  --popover-foreground: #e7e9e6;
+
+  --primary: #2fb3a0;
+  --primary-foreground: #06110f;
+  --secondary: #1e242d;
+  --secondary-foreground: #d6dae0;
+  --muted: #1e242d;
+  --muted-foreground: #98a2b0;
+  --accent: #16302c;
+  --accent-foreground: #7fe0d1;
+
+  --destructive: #e0705a;
+  --border: #262d37;
+  --input: #2c3540;
+  --ring: #2fb3a0;
+
+  --success: #35b37e;
+  --success-foreground: #06110f;
+  --warning: #e0a54a;
+  --track: #232b34;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-track: var(--track);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: calc(var(--radius) - 3px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 45%, transparent);
+  }
+  body {
+    margin: 0;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Timesheet-field micro label */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-mono { font-family: var(--font-mono); }
+  /* Slim scrollbar for compact scroll areas (e.g. the time picker). */
+  .thin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
+  }
+  .thin-scroll::-webkit-scrollbar {
+    width: 3px;
+  }
+  .thin-scroll::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+    border-radius: 9999px;
+  }
+  .thin-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* Hairline hour ticks for the Day Bar (16h window → 16 divisions). */
+  .daybar-ticks {
+    background-image: repeating-linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--foreground) 8%, transparent) 0,
+      color-mix(in oklch, var(--foreground) 8%, transparent) 1px,
+      transparent 1px,
+      transparent calc(100% / 16)
+    );
+  }
+}
+
+/* react-day-picker themed to the app */
+.rdp-root {
+  --rdp-accent-color: var(--primary);
+  --rdp-accent-background-color: color-mix(in oklch, var(--primary) 12%, transparent);
+  --rdp-range_middle-background-color: color-mix(in oklch, var(--primary) 12%, transparent);
+  --rdp-range_middle-color: var(--foreground);
+  --rdp-range_start-color: var(--primary-foreground);
+  --rdp-range_end-color: var(--primary-foreground);
+  --rdp-range_start-background: transparent;
+  --rdp-range_end-background: transparent;
+  --rdp-range_start-date-background-color: var(--primary);
+  --rdp-range_end-date-background-color: var(--primary);
+  --rdp-today-color: var(--primary);
+  --rdp-day-width: 2.35rem;
+  --rdp-day-height: 2.35rem;
+  --rdp-day_button-width: 1.85rem;
+  --rdp-day_button-height: 1.85rem;
+  --rdp-day_button-border: none;
+  --rdp-day_button-border-radius: 9999px;
+  --rdp-selected-border: none;
+  --rdp-nav_button-width: 1.75rem;
+  --rdp-nav_button-height: 1.75rem;
+  --rdp-weekday-opacity: 1;
+  --rdp-weekday-text-transform: uppercase;
+  --rdp-outside-opacity: 0.35;
+  --rdp-disabled-opacity: 0.3;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+.rdp-root .rdp-month_caption {
+  padding-inline: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+.rdp-root .rdp-caption_label {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.rdp-root .rdp-weekday {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+.rdp-root .rdp-day_button {
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.rdp-root .rdp-day:not(.rdp-selected) .rdp-day_button:hover:not([disabled]) {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.rdp-root .rdp-today:not(.rdp-selected) .rdp-day_button {
+  font-weight: 600;
+}
+.rdp-root .rdp-nav {
+  gap: 0.25rem;
+}
+.rdp-root .rdp-nav button {
+  color: var(--muted-foreground);
+  border-radius: var(--radius-md);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.rdp-root .rdp-nav button:hover {
+  background-color: var(--accent);
+  color: var(--foreground);
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+  /* Preserve the report's accent colour and rules when printing. */
+  [data-report] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Long reports: repeat the table header on each page and keep rows intact. */
+  [data-report] thead {
+    display: table-header-group;
+  }
+  [data-report] tr {
+    break-inside: avoid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
