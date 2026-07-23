@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Clock, Printer, FileDown, Loader2 } from 'lucide-react'
 import { getSharedReport } from '@/lib/api'
 import { savePdf } from '@/lib/pdf'
+import { reportPeriodSlug } from '@/lib/time'
 import { Button } from '@/components/ui/button'
 import { ReportView } from '@/components/ReportView'
 
 export function SharedReportPage() {
   const { token } = useParams<{ token: string }>()
   const [savingPdf, setSavingPdf] = useState(false)
+  const pdfRef = useRef<HTMLDivElement>(null)
   const { data, isPending, isError } = useQuery({
     queryKey: ['shared-report', token],
     queryFn: () => getSharedReport(token!),
@@ -18,13 +20,12 @@ export function SharedReportPage() {
   })
 
   async function downloadPdf() {
-    const el = document.querySelector<HTMLElement>('[data-report]')
+    const el = pdfRef.current
     if (!el) return
     setSavingPdf(true)
     try {
-      const from = data?.range.from ?? ''
-      const to = data?.range.to ?? ''
-      await savePdf(el, `timesheet-${from}_${to}.pdf`)
+      const slug = data ? reportPeriodSlug(data.range, data.entries) : 'report'
+      await savePdf(el, `timesheet-${slug}.pdf`)
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Failed to create PDF.')
     } finally {
@@ -76,6 +77,17 @@ export function SharedReportPage() {
           <ReportView report={data} />
         )}
       </main>
+
+      {/* Off-screen fixed-width copy captured for the PDF (desktop layout). */}
+      {data && (
+        <div
+          ref={pdfRef}
+          aria-hidden
+          className="pointer-events-none fixed top-0 left-[-9999px] w-[800px] bg-white print:hidden"
+        >
+          <ReportView report={data} fixed />
+        </div>
+      )}
     </div>
   )
 }

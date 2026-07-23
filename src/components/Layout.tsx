@@ -1,6 +1,7 @@
 import { NavLink, Outlet, Link } from 'react-router-dom'
 import { Clock, LogOut, Timer, Table2, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { CONTACT_EMAIL } from '@/lib/config'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
@@ -74,6 +75,15 @@ export function Layout({
             <LogOut className="size-4" />
             Sign out
           </Button>
+          <p className="px-2 pt-1 text-[10px] leading-tight text-muted-foreground/60">
+            © {new Date().getFullYear()}{' '}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="hover:text-foreground hover:underline"
+            >
+              {CONTACT_EMAIL}
+            </a>
+          </p>
         </div>
       </aside>
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Printer, FileDown, Link2, ClipboardCopy, Loader2, Check } from 'lucide-react'
@@ -6,7 +6,13 @@ import { getProfile, createSharedReport } from '@/lib/api'
 import { useEntries } from '@/lib/useEntries'
 import { savePdf } from '@/lib/pdf'
 import type { DateRange, ReportPayload } from '@/lib/types'
-import { monthRange, sumHours, fmtHours, reportPeriodLabel } from '@/lib/time'
+import {
+  monthRange,
+  sumHours,
+  fmtHours,
+  reportPeriodLabel,
+  reportPeriodSlug,
+} from '@/lib/time'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ReportView } from '@/components/ReportView'
@@ -26,6 +32,7 @@ export function ReportPage() {
   const [sharing, setSharing] = useState(false)
   const [savingPdf, setSavingPdf] = useState(false)
   const [copied, setCopied] = useState<'link' | 'summary' | null>(null)
+  const pdfRef = useRef<HTMLDivElement>(null)
 
   const report: ReportPayload = useMemo(
     () => ({
@@ -73,11 +80,11 @@ export function ReportPage() {
       ?.trim()
       .toLowerCase()
       .replace(/\s+/g, '-')
-    return `timesheet-${name ? name + '-' : ''}${range.from}_${range.to}`
+    return `timesheet-${name ? name + '-' : ''}${reportPeriodSlug(range, entries)}`
   }
 
   async function downloadPdf() {
-    const el = document.querySelector<HTMLElement>('[data-report]')
+    const el = pdfRef.current
     if (!el) return
     setSavingPdf(true)
     try {
@@ -129,6 +136,15 @@ export function ReportPage() {
         </div>
       </div>
 
+      {!loading && !report.profile.full_name && (
+        <div className="border-warning/40 bg-warning/10 flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm print:hidden">
+          <span>Add your name so it shows on this report instead of “Employee”.</span>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/settings">Open settings</Link>
+          </Button>
+        </div>
+      )}
+
       {shareUrl && (
         <div className="rounded-lg border bg-muted/40 p-3 text-sm print:hidden">
           <p className="text-muted-foreground mb-1 text-xs">
@@ -143,6 +159,15 @@ export function ReportPage() {
       ) : (
         <ReportView report={report} />
       )}
+
+      {/* Off-screen fixed-width copy captured for the PDF (desktop layout). */}
+      <div
+        ref={pdfRef}
+        aria-hidden
+        className="pointer-events-none fixed top-0 left-[-9999px] w-[800px] bg-white print:hidden"
+      >
+        <ReportView report={report} fixed />
+      </div>
     </div>
   )
 }

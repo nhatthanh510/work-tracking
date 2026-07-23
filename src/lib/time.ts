@@ -80,10 +80,18 @@ export function fmtRangeLabel({ from, to }: DateRange): string {
 export function reportPeriodLabel(range: DateRange, entries: TimeEntry[]): string {
   if (!isUnboundedRange(range)) return fmtRangeLabel(range)
   if (!entries.length) return 'All time'
-  const dates = entries.map((e) => e.work_date)
-  const from = dates.reduce((a, b) => (a < b ? a : b))
-  const to = dates.reduce((a, b) => (a > b ? a : b))
+  const from = entries.reduce((a, e) => (e.work_date < a ? e.work_date : a), entries[0].work_date)
+  const to = entries.reduce((a, e) => (e.work_date > a ? e.work_date : a), entries[0].work_date)
   return fmtRangeLabel({ from, to })
+}
+
+/** Filename-safe period slug, e.g. "2026-07-15_2026-07-23" or "all". */
+export function reportPeriodSlug(range: DateRange, entries: TimeEntry[]): string {
+  if (!isUnboundedRange(range)) return `${range.from}_${range.to}`
+  if (!entries.length) return 'all'
+  const from = entries.reduce((a, e) => (e.work_date < a ? e.work_date : a), entries[0].work_date)
+  const to = entries.reduce((a, e) => (e.work_date > a ? e.work_date : a), entries[0].work_date)
+  return `${from}_${to}`
 }
 
 /**

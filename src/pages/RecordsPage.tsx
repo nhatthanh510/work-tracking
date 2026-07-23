@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, Download, Timer, CalendarDays, TrendingUp, FileText } from 'lucide-react'
+import {
+  Clock,
+  Download,
+  Timer,
+  CalendarDays,
+  CalendarClock,
+  TrendingUp,
+  FileText,
+} from 'lucide-react'
 import type { DateRange, RangePreset } from '@/lib/types'
 import { presetRange, sumHours, fmtHours } from '@/lib/time'
 import { toCSV, downloadCSV } from '@/lib/csv'
@@ -128,6 +136,28 @@ export function RecordsPage() {
             <div className="py-10 text-center text-sm text-destructive">{error}</div>
           ) : loading ? (
             <EntryTableSkeleton />
+          ) : entries.length === 0 ? (
+            <div className="flex flex-col items-center py-12 text-center">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <CalendarClock className="size-6" />
+              </div>
+              <p className="mt-3 font-medium">
+                {preset === 'all' ? 'No hours logged yet' : 'Nothing in this range'}
+              </p>
+              <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+                {preset === 'all'
+                  ? 'Check in from the home screen to start the clock, or add a past day below.'
+                  : 'Pick a wider range, or add an entry below.'}
+              </p>
+              {preset === 'all' && (
+                <Button asChild className="mt-4">
+                  <Link to="/">
+                    <Timer className="size-4" />
+                    Go to check-in
+                  </Link>
+                </Button>
+              )}
+            </div>
           ) : (
             <>
               <EntryTable entries={paged} />
