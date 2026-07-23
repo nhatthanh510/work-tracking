@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TimePicker } from '@/components/ui/time-picker'
 import { DayBar } from '@/components/DayBar'
@@ -68,47 +69,171 @@ export function EntryTable({ entries }: { entries: TimeEntry[] }) {
   }
 
   return (
-    <Table>
-      <HeaderRow />
-      <TableBody>
+    <>
+      {/* Mobile: card list (no horizontal scroll) */}
+      <div className="space-y-2 sm:hidden">
         {entries.map((e) => (
-          <EntryRow key={e.id} entry={e} />
+          <EntryCard key={e.id} entry={e} />
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden sm:block">
+        <Table>
+          <HeaderRow />
+          <TableBody>
+            {entries.map((e) => (
+              <EntryRow key={e.id} entry={e} />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }
 
-function EntryRow({ entry }: { entry: TimeEntry }) {
+/** Shared edit-dialog + delete wiring for a row / card. */
+function useRowActions(entry: TimeEntry) {
   const { remove } = useEntryMutations()
   const [editing, setEditing] = useState(false)
 
   function onDelete() {
-    if (!window.confirm(`Delete entry for ${entry.work_date}?`)) return
     remove.mutate(entry.id, {
       onError: (e) =>
         alert(e instanceof Error ? e.message : 'Failed to delete entry.'),
     })
   }
 
+  return { editing, setEditing, onDelete, deleting: remove.isPending }
+}
+
+function DateLabel({ entry }: { entry: TimeEntry }) {
   const incomplete = !entry.check_in || !entry.check_out
+  return (
+    <div className="flex items-center gap-2">
+      <span className="font-medium tabular-nums">{fmtDateLabel(entry.work_date)}</span>
+      <span className="text-xs font-normal text-muted-foreground">
+        {weekdayShort(entry.work_date)}
+      </span>
+      {incomplete && (
+        <Badge variant="warning" className="gap-1">
+          <AlertTriangle className="size-3" />
+          Incomplete
+        </Badge>
+      )}
+    </div>
+  )
+}
+
+function RowActions({
+  onEdit,
+  onDelete,
+  deleting,
+}: {
+  onEdit: () => void
+  onDelete: () => void
+  deleting: boolean
+}) {
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <Button variant="ghost" size="sm" onClick={onEdit}>
+        <Pencil className="size-4" />
+        Edit
+      </Button>
+      <Popover open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            aria-label="Delete"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-60">
+          <p className="text-sm font-medium">Delete this entry?</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            This can’t be undone.
+          </p>
+          <div className="mt-3 flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleting}
+              onClick={() => {
+                onDelete()
+                setConfirmOpen(false)
+              }}
+            >
+              {deleting && <Loader2 className="animate-spin" />}
+              Delete
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
+
+function EntryCard({ entry }: { entry: TimeEntry }) {
+  const { editing, setEditing, onDelete, deleting } = useRowActions(entry)
+  const hrs = hoursBetween(entry.check_in, entry.check_out)
+
+  return (
+    <div className="rounded-lg border p-3">
+      <DateLabel entry={entry} />
+
+      <dl className="mt-3 space-y-1.5 text-sm">
+        <div className="flex items-center justify-between">
+          <dt className="text-muted-foreground">Check-in</dt>
+          <dd className="font-mono tabular-nums">{fmtTime(entry.check_in) || '—'}</dd>
+        </div>
+        <div className="flex items-center justify-between">
+          <dt className="text-muted-foreground">Check-out</dt>
+          <dd className="font-mono tabular-nums">{fmtTime(entry.check_out) || '—'}</dd>
+        </div>
+        <div className="flex items-center justify-between">
+          <dt className="text-muted-foreground">Hours</dt>
+          <dd className="font-mono font-medium tabular-nums">
+            {hrs == null ? '—' : fmtHours(hrs)}
+          </dd>
+        </div>
+      </dl>
+
+      {entry.note && (
+        <p className="mt-2 text-sm text-muted-foreground">{entry.note}</p>
+      )}
+
+      <div className="mt-3 border-t pt-2">
+        <RowActions
+          onEdit={() => setEditing(true)}
+          onDelete={onDelete}
+          deleting={deleting}
+        />
+      </div>
+
+      <EditEntryDialog entry={entry} open={editing} onOpenChange={setEditing} />
+    </div>
+  )
+}
+
+function EntryRow({ entry }: { entry: TimeEntry }) {
+  const { editing, setEditing, onDelete, deleting } = useRowActions(entry)
   const hrs = hoursBetween(entry.check_in, entry.check_out)
 
   return (
     <TableRow>
       <TableCell className="font-medium">
-        <div className="flex items-center gap-2">
-          <span className="tabular-nums">{fmtDateLabel(entry.work_date)}</span>
-          <span className="text-xs font-normal text-muted-foreground">
-            {weekdayShort(entry.work_date)}
-          </span>
-          {incomplete && (
-            <Badge variant="warning" className="gap-1">
-              <AlertTriangle className="size-3" />
-              Incomplete
-            </Badge>
-          )}
-        </div>
+        <DateLabel entry={entry} />
         <DayBar
           variant="mini"
           checkIn={entry.check_in}
@@ -129,22 +254,11 @@ function EntryRow({ entry }: { entry: TimeEntry }) {
         {entry.note}
       </TableCell>
       <TableCell>
-        <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-            <Pencil className="size-4" />
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={onDelete}
-            disabled={remove.isPending}
-            aria-label="Delete"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
+        <RowActions
+          onEdit={() => setEditing(true)}
+          onDelete={onDelete}
+          deleting={deleting}
+        />
       </TableCell>
 
       <EditEntryDialog entry={entry} open={editing} onOpenChange={setEditing} />
@@ -259,33 +373,52 @@ function EditEntryDialog({
  */
 export function EntryTableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <Table>
-      <HeaderRow />
-      <TableBody>
+    <>
+      {/* Mobile card skeletons */}
+      <div className="space-y-2 sm:hidden">
         {Array.from({ length: rows }).map((_, i) => (
-          <TableRow key={i}>
-            <TableCell>
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="mt-2 h-1.5 w-32" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-5 w-12" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-5 w-12" />
-            </TableCell>
-            <TableCell className="text-right">
-              <Skeleton className="ml-auto h-5 w-14" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-5 w-20" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="ml-auto h-5 w-16" />
-            </TableCell>
-          </TableRow>
+          <div key={i} className="rounded-lg border p-3">
+            <Skeleton className="h-5 w-24" />
+            <div className="mt-3 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop table skeleton */}
+      <div className="hidden sm:block">
+        <Table>
+          <HeaderRow />
+          <TableBody>
+            {Array.from({ length: rows }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="mt-2 h-1.5 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-12" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-12" />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Skeleton className="ml-auto h-5 w-14" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="ml-auto h-5 w-16" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }

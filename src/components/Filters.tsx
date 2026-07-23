@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { CalendarDays } from 'lucide-react'
 import { type DateRange as RdpRange } from 'react-day-picker'
 import type { DateRange, RangePreset } from '@/lib/types'
-import { presetRange, fmtRangeLabel, fmtDateLabel, todayISO } from '@/lib/time'
+import {
+  presetRange,
+  fmtRangeLabel,
+  fmtDateLabel,
+  todayISO,
+  isUnboundedRange,
+} from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -10,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 const PRESETS: { key: Exclude<RangePreset, 'custom'>; label: string }[] = [
   { key: 'all', label: 'All' },
-  { key: 'today', label: 'Today' },
   { key: 'thisWeek', label: 'This week' },
   { key: 'lastWeek', label: 'Last week' },
   { key: 'thisMonth', label: 'This month' },
@@ -34,6 +39,10 @@ export function Filters({
   // on open; the user can re-pick as many times as they like, then Apply.
   const [draft, setDraft] = useState<RdpRange | undefined>()
 
+  // "All" uses sentinel dates (1900–9999), so fall back to the current month.
+  const unbounded = isUnboundedRange(range)
+  const calendarMonth = unbounded ? new Date() : toDate(range.from)
+
   const complete = !!(draft?.from && draft?.to)
 
   const draftLabel = draft?.from
@@ -50,8 +59,8 @@ export function Filters({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <div className="bg-muted/60 inline-flex rounded-lg p-0.5">
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
+      <div className="no-scrollbar bg-muted/60 flex min-w-0 max-w-full gap-0.5 overflow-x-auto rounded-lg p-0.5">
         {PRESETS.map(({ key, label }) => {
           const active = preset === key
           return (
@@ -59,10 +68,10 @@ export function Filters({
               key={key}
               onClick={() => onPreset(key, presetRange(key))}
               className={cn(
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                'rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-150',
                 active
                   ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
+                  : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
               )}
             >
               {label}
@@ -75,8 +84,14 @@ export function Filters({
         open={open}
         onOpenChange={(o) => {
           setOpen(o)
-          // Preload the committed range so it's highlighted when reopened.
-          if (o) setDraft({ from: toDate(range.from), to: toDate(range.to) })
+          // Preload the committed range so it's highlighted when reopened —
+          // but start fresh when the current filter is the unbounded "All".
+          if (o)
+            setDraft(
+              unbounded
+                ? undefined
+                : { from: toDate(range.from), to: toDate(range.to) },
+            )
         }}
       >
         <PopoverTrigger asChild>
@@ -93,7 +108,7 @@ export function Filters({
             mode="range"
             min={1}
             resetOnSelect
-            defaultMonth={toDate(range.from)}
+            defaultMonth={calendarMonth}
             selected={draft}
             onSelect={setDraft}
           />

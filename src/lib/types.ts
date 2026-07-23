@@ -20,7 +20,6 @@ export type ViewMode = 'entries' | 'week' | 'month'
 
 export type RangePreset =
   | 'all'
-  | 'today'
   | 'thisWeek'
   | 'lastWeek'
   | 'thisMonth'

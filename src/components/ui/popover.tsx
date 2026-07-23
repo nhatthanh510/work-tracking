@@ -7,6 +7,8 @@ function Popover(props: React.ComponentProps<typeof PopoverPrimitive.Root>) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />
 }
 
+const PopoverClose = PopoverPrimitive.Close
+
 function PopoverTrigger(
   props: React.ComponentProps<typeof PopoverPrimitive.Trigger>,
 ) {
@@ -35,4 +37,4 @@ function PopoverContent({
   )
 }
 
-export { Popover, PopoverTrigger, PopoverContent }
+export { Popover, PopoverTrigger, PopoverContent, PopoverClose }

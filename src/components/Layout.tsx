@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, Link } from 'react-router-dom'
 import { Clock, LogOut, Timer, Table2, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -45,14 +45,14 @@ export function Layout({
       {/* Sidebar (desktop) */}
       <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card px-3 py-5 md:flex print:hidden">
         <div className="px-2 pb-6">
-          <div className="flex items-center gap-2.5">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Home">
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Clock className="size-4.5" />
             </div>
             <span className="font-display text-lg leading-none font-semibold tracking-tight">
               Timesheet
             </span>
-          </div>
+          </Link>
           <div className="mt-2 pl-0.5">
             <span className="eyebrow">Chronograph</span>
           </div>
@@ -79,12 +79,12 @@ export function Layout({
 
       {/* Top bar (mobile) */}
       <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-card/90 px-4 py-2.5 backdrop-blur md:hidden print:hidden">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2" aria-label="Home">
           <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Clock className="size-4" />
           </div>
           <span className="font-display text-sm font-semibold">Timesheet</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-1">
           {links}
           <ThemeToggle />

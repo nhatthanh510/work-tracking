@@ -36,15 +36,16 @@ export function weekRange(offsetWeeks = 0, date = new Date()): DateRange {
 export const ALL_FROM = '1900-01-01'
 export const ALL_TO = '9999-12-31'
 
+/** True when the range is the "All" sentinel (not a real user-picked span). */
+export function isUnboundedRange(range: DateRange): boolean {
+  return range.from <= ALL_FROM || range.to >= ALL_TO
+}
+
 /** Resolve a named preset to a concrete date range. */
 export function presetRange(preset: Exclude<RangePreset, 'custom'>): DateRange {
   switch (preset) {
     case 'all':
       return { from: ALL_FROM, to: ALL_TO }
-    case 'today': {
-      const t = todayISO()
-      return { from: t, to: t }
-    }
     case 'thisWeek':
       return weekRange(0)
     case 'lastWeek':
@@ -77,8 +78,7 @@ export function fmtRangeLabel({ from, to }: DateRange): string {
  * span of the entries instead of the sentinel dates; falls back to "All time".
  */
 export function reportPeriodLabel(range: DateRange, entries: TimeEntry[]): string {
-  const unbounded = range.from <= ALL_FROM || range.to >= ALL_TO
-  if (!unbounded) return fmtRangeLabel(range)
+  if (!isUnboundedRange(range)) return fmtRangeLabel(range)
   if (!entries.length) return 'All time'
   const dates = entries.map((e) => e.work_date)
   const from = dates.reduce((a, b) => (a < b ? a : b))

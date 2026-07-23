@@ -12,11 +12,21 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker>
  * library stylesheet; colors/sizing are themed via CSS vars in index.css
  * (scoped to .rdp-root).
  */
-export function Calendar({ className, ...props }: CalendarProps) {
+export function Calendar({
+  className,
+  captionLayout = 'dropdown',
+  startMonth,
+  endMonth,
+  ...props
+}: CalendarProps) {
+  const now = new Date()
   return (
     <DayPicker
       className={cn('rdp-root', className)}
       showOutsideDays
+      captionLayout={captionLayout}
+      startMonth={startMonth ?? new Date(now.getFullYear() - 6, 0)}
+      endMonth={endMonth ?? new Date(now.getFullYear() + 1, 11)}
       components={{
         Chevron: ({ orientation, className: c, ...rest }) =>
           orientation === 'left' ? (

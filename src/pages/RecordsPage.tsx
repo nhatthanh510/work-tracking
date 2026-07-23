@@ -106,14 +106,19 @@ export function RecordsPage() {
               }}
             />
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={exportCsv} disabled={!entries.length}>
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={exportCsv}
+                disabled={!entries.length}
+              >
                 <Download className="size-4" />
-                <span className="hidden sm:inline">Export CSV</span>
+                Export CSV
               </Button>
-              <Button asChild>
+              <Button asChild className="flex-1 sm:flex-none">
                 <Link to={`/report?from=${range.from}&to=${range.to}`}>
                   <FileText className="size-4" />
-                  <span className="hidden sm:inline">Report</span>
+                  Report
                 </Link>
               </Button>
             </div>

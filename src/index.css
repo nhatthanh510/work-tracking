@@ -154,6 +154,14 @@
   .thin-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
+  /* Hide scrollbar entirely (e.g. horizontal filter strip). */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   /* Hairline hour ticks for the Day Bar (16h window → 16 divisions). */
   .daybar-ticks {
     background-image: repeating-linear-gradient(
@@ -204,6 +212,29 @@
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 600;
+}
+/* Month / year dropdowns */
+.rdp-root .rdp-dropdowns {
+  display: flex;
+  gap: 0.5rem;
+}
+.rdp-root .rdp-dropdown_root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  padding: 0.15rem 0.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.12s ease;
+}
+.rdp-root .rdp-dropdown_root:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.rdp-root .rdp-dropdown {
+  cursor: pointer;
 }
 .rdp-root .rdp-weekday {
   font-family: var(--font-mono);
